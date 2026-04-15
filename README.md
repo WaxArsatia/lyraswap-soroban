@@ -1,118 +1,257 @@
-# Stellar Notes DApp
+# LyraSwap (Soroban AMM)
 
-**Stellar Notes DApp** - Blockchain-Based Decentralized Note-Taking System
+LyraSwap is a production-grade, single-pair Soroban DEX contract that implements:
 
-## Project Description
+- Constant-product AMM (`x * y = k`) Pair architecture
+- OpenZeppelin standard `FungibleToken` and `FungibleBurnable` behavior for LP pairs (LP tokens can be freely transferred and managed by Stellar wallets)
+- OpenZeppelin `Ownable` administration for secure fee management
+- Robust `__constructor` instantiation per trading pair
+- Exact-in swaps only (`swap_exact_in`)
+- Max trading fee hardcap at 3% (300 basis points)
 
-Stellar Notes DApp is a decentralized smart contract solution built on the Stellar blockchain using Soroban SDK. It provides a secure, immutable platform for managing personal notes directly on the blockchain. The contract ensures that your data is stored transparently and is only manageable through predefined smart contract functions, eliminating reliance on centralized database providers.
+Intentionally excluded in v1:
 
-The system allows users to create, view, and delete notes, leveraging the efficiency and security of the Stellar network. Each note is uniquely identified and stored within the contract's instance storage, ensuring data persistence and reliability.
+- Multi-pool dynamic routing (this contract represents exactly ONE pair to match Uniswap V2 principles)
+- Exact-out swaps
+- Protocol fee treasury
+- Deadline parameters
+- Pause/emergency controls
+- Upgrade flow
+
+## Project Overview: The On-Chain AMM Pair
+
+LyraSwap is a decentralized automated market maker (AMM) built on Stellar Soroban for a single token pair. It gives liquidity providers and traders a transparent, auditable market where pricing follows the constant-product model.
+
+For teams that need a focused and reliable on-chain swap pair, LyraSwap provides a clean contract surface for deployment, liquidity provisioning, and exact-in swaps while keeping operations verifiable on the public ledger.
+
+## Project Description: How It Works
+
+LyraSwap follows a straightforward pool lifecycle:
+
+1. Pair deployment: The contract is deployed with `token_a`, `token_b`, `fee_bps`, and owner metadata through `__constructor`.
+2. Liquidity provisioning: Providers call `add_liquidity` to deposit both assets and receive LP tokens.
+3. Trading: Traders call `swap_exact_in` to swap one token for the other with configurable slippage protection.
+4. Liquidity withdrawal: LP holders call `remove_liquidity` to burn LP and receive their proportional reserves.
 
 ## Project Vision
 
-Our vision is to revolutionize personal productivity in the digital age by:
-
-- **Decentralizing Data**: Moving note-taking from centralized servers to a global, distributed blockchain
-- **Ensuring Ownership**: Empowering users to have complete control and ownership over their digital thoughts and information
-- **Guaranteeing Immutability**: Providing a permanent, tamper-proof record of notes that cannot be altered or deleted by third parties
-- **Enhancing Privacy**: Leveraging blockchain security to protect personal information from unauthorized access
-- **Building Trustless Systems**: Creating a platform where data integrity is guaranteed by code, not by company promises
-
-We envision a future where digital information is truly personal and sovereign, empowering individuals with complete autonomy over their digital assets.
+- Fair market access: Anyone can interact with the pool under the same deterministic AMM rules.
+- Transparent execution: Pool reserves and swaps are fully inspectable on-chain.
+- Low-friction DeFi primitive: A minimal single-pair architecture suitable for learning, prototyping, and extension.
+- Secure administration: Owner-only fee updates with a strict fee cap.
 
 ## Key Features
 
-### 1. **Simple Note Creation**
+### Constant-Product Pricing
 
-- Create notes with just one function call
-- Specify title and content for each note
-- Automated ID generation for unique identification
-- Persistent storage on the Stellar blockchain
+Swap pricing follows `x * y = k` with exact-in swap support.
 
-### 2. **Efficient Data Retrieval**
+### LP Token Standard Compatibility
 
-- Fetch all stored notes in a single call
-- Structured data representation for easy frontend integration
-- Quick access to your entire note collection
-- Real-time synchronization with the blockchain state
+LP balances use OpenZeppelin `FungibleToken` and `FungibleBurnable` behavior for wallet compatibility.
 
-### 3. **Secure Deletion**
+### Constructor-Based Pair Initialization
 
-- Remove specific notes using their unique IDs
-- Permanent removal from the contract storage
-- Clean and efficient storage management
-- Immediate update of the note list after deletion
+The pair is initialized once at deployment using `__constructor`, preventing repeated initialization.
 
-### 4. **Transparency and Security**
+### On-Chain Event Traceability
 
-- View all note activities on the blockchain
-- Blockchain-based verification of all storage actions
-- Immutable records of note creation and deletion
-- Protected against unauthorized modifications
+Liquidity and swap actions emit events, creating a durable on-chain activity trail.
 
-### 5. **Stellar Network Integration**
+## Deployed Smart Contract Details
 
-- Leverages the high speed and low cost of Stellar
-- Built using the modern Soroban Smart Contract SDK
-- Scalable architecture for growing note collections
-- Interoperable with other Stellar-based services
+### Public Pair Contract ID (Testnet)
 
-## Contract Details
+`CDCQRGEKYBOV4KKUFJDSFSDNET7ESWBEPV6L5D3HWPDGUA6VQ5FMSL4G`
 
-- Contract Address: CBLU4IUASQ4WUMOXBFLZRSBBLILGOH33GS4LUPKFBCCCMJCDQNMF7G2M
-  ![alt text](screenshot.png)
+### Live Deployment Screenshot
+
+Below is the deployment/interaction snapshot provided for this project:
+
+![LyraSwap Deployment Screenshot](deploy_screenshot.png)
 
 ## Future Scope
 
-### Short-Term Enhancements
+1. [ ] Multi-pool factory support for deploying many pairs from one orchestrator contract.
+2. [ ] Protocol fee routing to a treasury contract.
+3. [ ] Exact-out swaps and router helpers.
+4. [ ] Deadline and permit-style UX improvements.
+5. [ ] Analytics hooks for TWAP, volume, and LP performance dashboards.
 
-1. **Note Encryption**: Support for end-to-end encryption of note content for enhanced privacy
-2. **Category Management**: Add tags and categories to organize notes efficiently
-3. **Rich Text Support**: Extend support beyond plain text to include Markdown and formatted content
-4. **Search Functionality**: Implement advanced search filters for large note collections
+<p align="center">
+  <i>"Transparent liquidity turns market activity into verifiable infrastructure."</i>
+</p>
 
-### Medium-Term Development
+<div align="right">
+  <b>SYSTEM: LYRASWAP | ENGINE: STELLAR SOROBAN</b>
+</div>
 
-5. **Collaborative Notes**: Implement multi-signature requirements for shared or collaborative note-taking
-   - Shared access for multiple addresses
-   - Permission-based editing and viewing
-   - Version history tracking
-6. **Notification System**: Off-chain bridge to alert users of new updates or shared notes
-7. **Asset Attachment**: Capability to attach digital assets or tokens to specific notes
-8. **Inter-Contract Integration**: Allow other smart contracts to interact with and store data in the notes contract
+## Project Structure
 
-### Long-Term Vision
+```text
+.
+├── contracts
+│   └── lyraswap
+│       ├── Cargo.toml
+│       └── src
+│           ├── lib.rs
+│           └── test.rs
+├── Cargo.toml
+└── README.md
+```
 
-9. **Cross-Chain Synchronization**: Extend note storage to multiple blockchain networks
-10. **Decentralized UI Hosting**: Host the frontend on IPFS or similar decentralized platforms
-11. **AI-Powered Summarization**: Optional integration with AI to help users summarize their notes
-12. **Privacy Layers**: Implement zero-knowledge proofs for completely private note content
-13. **DAO Governance**: Community-driven protocol improvements and feature prioritization
-14. **Identity Management**: Integration with decentralized identity (DID) systems for user management
+## Build and Test
 
-### Enterprise Features
+From the project root:
 
-15. **Corporate Documentation**: Adapt the system for secure corporate record-keeping
-16. **Immutable Logging**: Create time-locked logs for audit purposes
-17. **Automated Reporting**: Automatic note triggers for periodic reporting
-18. **Multi-Language Support**: Expand accessibility with internationalization
+```bash
+cargo fmt
+cargo test --manifest-path=Cargo.toml
+cargo build --target wasm32v1-none --release
+```
 
----
+## Soroban CLI Usage
 
-## Technical Requirements
+You can deploy and invoke a `LyraSwap` Pair using `soroban-cli` locally or on testnet.
 
-- Soroban SDK
-- Rust programming language
-- Stellar blockchain network
+### 1. Build the Contract
 
-## Getting Started
+```bash
+stellar contract build
+```
 
-Deploy the smart contract to Stellar's Soroban network and interact with it using the three main functions:
+This produces `target/wasm32v1-none/release/lyraswap.wasm`.
 
-- `create_note()` - Create a new note with a title and content
-- `get_notes()` - Retrieve all stored notes from the contract
-- `delete_note()` - Remove a specific note by its ID
+### 2. Deploy
 
----
+Deploy the wasm binary to your chosen network to get a Contract ID.
 
-**Stellar Notes DApp** - Securing Your Thoughts on the Blockchain
+```bash
+stellar contract deploy \
+  --wasm target/wasm32v1-none/release/lyraswap.wasm \
+  --source admin \
+  --network testnet
+```
+
+### 3. Initialize the Pair
+
+Because the contract uses the `__constructor` initialization pattern, you shouldn't call a separate `initialize` method. If deploying with the constructor, provide the args directly during deployment:
+
+```bash
+stellar contract deploy \
+  --wasm target/wasm32v1-none/release/lyraswap.wasm \
+  --source admin \
+  --network testnet \
+  -- \
+  --token_a <TOKEN_A_ID> \
+  --token_b <TOKEN_B_ID> \
+  --fee_bps 30 \
+  --owner <OWNER_ADDRESS> \
+  --token_name "Lyra LP Token" \
+  --token_symbol "LYRA-LP"
+```
+
+### 4. Provide Liquidity
+
+```bash
+stellar contract invoke \
+  --id <CONTRACT_ID> \
+  --source provider \
+  --network testnet \
+  -- \
+  add_liquidity \
+  --provider <PROVIDER_ADDRESS> \
+  --amount_0_opt 10000000 \
+  --amount_1_opt 10000000
+```
+
+### 5. Swap
+
+```bash
+stellar contract invoke \
+  --id <CONTRACT_ID> \
+  --source trader \
+  --network testnet \
+  -- \
+  swap_exact_in \
+  --trader <TRADER_ADDRESS> \
+  --token_in <TOKEN_IN_ID> \
+  --amount_in 100000 \
+  --min_amount_out 90000
+```
+
+## Testnet Deployment Process and Result
+
+The following is a real deployment and liquidity provisioning run that used:
+
+- Wallet: `GCL7GTFA6QDO7C2ERCXNL5J5APZMVXHE4OF63G3QDKFAYQAFNUBX3WM5`
+- Source account alias: `waxarsatia`
+- TokenA: `CBA5ZCSQYGLCJ7KRLBWDDOJ2BWU7N2GJ4SQSHULF76X6CRJH7ZSLL64D`
+- TokenB: `CCDC5U3OC7RXWGUG3ZSK7SB7JHDCY5RVXUKI3IN5JK4KC6PDJ5XWJMUJ`
+- Network: `testnet`
+
+### 1. Build
+
+```bash
+stellar contract build
+```
+
+### 2. Deploy With Constructor Args
+
+```bash
+stellar contract deploy \
+  --source-account waxarsatia \
+  --network testnet \
+  --wasm target/wasm32v1-none/release/lyraswap.wasm \
+  -- \
+  --token_a CBA5ZCSQYGLCJ7KRLBWDDOJ2BWU7N2GJ4SQSHULF76X6CRJH7ZSLL64D \
+  --token_b CCDC5U3OC7RXWGUG3ZSK7SB7JHDCY5RVXUKI3IN5JK4KC6PDJ5XWJMUJ \
+  --fee_bps 30 \
+  --owner GCL7GTFA6QDO7C2ERCXNL5J5APZMVXHE4OF63G3QDKFAYQAFNUBX3WM5 \
+  --token_name "Lyra LP Token" \
+  --token_symbol "LYRA-LP"
+```
+
+Deploy result:
+
+- Contract ID: `CDCQRGEKYBOV4KKUFJDSFSDNET7ESWBEPV6L5D3HWPDGUA6VQ5FMSL4G`
+- Tx: https://stellar.expert/explorer/testnet/tx/abf8f4c070d979c5d903939ee7a2d3f59146f01b316d65935dcf7e69084e3903
+
+### 3. Add Liquidity (100000 TokenA + 100000 TokenB)
+
+Both tokens use `7` decimals, so `100000` tokens equals `1000000000000` raw units.
+
+```bash
+stellar contract invoke \
+  --id CDCQRGEKYBOV4KKUFJDSFSDNET7ESWBEPV6L5D3HWPDGUA6VQ5FMSL4G \
+  --source-account waxarsatia \
+  --network testnet \
+  --send yes \
+  -- \
+  add_liquidity \
+  --provider GCL7GTFA6QDO7C2ERCXNL5J5APZMVXHE4OF63G3QDKFAYQAFNUBX3WM5 \
+  --amount_0_opt 1000000000000 \
+  --amount_1_opt 1000000000000
+```
+
+Add liquidity result:
+
+- Tx: https://stellar.expert/explorer/testnet/tx/e85ea2d626134dc6fe515f0ca01e8570bc0dde0a686350851fbc808aaaa6e8e4
+- Event summary: liquidity added with `amount_0=1000000000000`, `amount_1=1000000000000`, `lp_minted=1000000000000`
+
+### 4. Verification
+
+Post-deployment state checks:
+
+- Wallet TokenA balance: `9000000000000` raw units (`900000` TokenA)
+- Wallet TokenB balance: `9000000000000` raw units (`900000` TokenB)
+- Pool reserves: `reserve_0=1000000000000`, `reserve_1=1000000000000`
+- LP balance (wallet): `1000000000000`
+
+## Math Overview
+
+- **Added Liquidity (`add_liquidity`)**:
+  - Initial minted LP is $ \sqrt{Amount*{A} \cdot Amount*{B}} $
+  - Subsequent LP is minted proportionally: $ \min(\frac{Amount*{A} \cdot TotalLP}{Reserve*{A}}, \frac{Amount*{B} \cdot TotalLP}{Reserve*{B}}) $.
+- **Swap Execution (`swap_exact_in`)**:
+  - Out = $ \frac{Amount*{in} \cdot (10000 - FeeBps) \cdot Reserve*{out}}{Reserve*{in} \cdot 10000 + Amount*{in} \cdot (10000 - FeeBps)} $.
