@@ -1,5 +1,5 @@
 [package]
-name = "notes"
+name = "lyraswap"
 version = "0.0.0"
 edition = "2021"
 publish = false
@@ -10,6 +10,9 @@ doctest = false
 
 [dependencies]
 soroban-sdk = { workspace = true }
+stellar-access = "0.7.1"
+stellar-macros = "0.7.1"
+stellar-tokens = "0.7.1"
 
 [dev-dependencies]
 soroban-sdk = { workspace = true, features = ["testutils"] }
